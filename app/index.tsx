@@ -49,7 +49,7 @@ export default function LoginScreen() {
         }
 
         await setToken(token);
-        router.push('/home'); // Navegar a pantalla de prueba
+        router.replace('/(tabs)/bolsillo'); // Navegar a las pestañas correctamente
       } catch (error: any) {
         console.error('Error al iniciar sesión:', error.response?.data || error.message);
         

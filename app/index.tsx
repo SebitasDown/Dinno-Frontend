@@ -1,4 +1,4 @@
-import { AuthMode, AuthTabs } from '@/components/ui/AuthTabs';
+import { AuthMode, AuthTabs } from '@/components/auth/AuthTabs';
 import { Button } from '@/components/ui/Button';
 import { DinnoLogo, DinnoMood } from '@/components/ui/DinnoLogo';
 import { Input } from '@/components/ui/Input';

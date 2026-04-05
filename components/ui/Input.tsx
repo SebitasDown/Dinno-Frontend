@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, TextInput, TextInputProps, StyleSheet, useColorScheme, TouchableOpacity } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, User, FileText } from 'lucide-react-native';
 
 const ICON_MAP = {
   Mail,
   Lock,
   User,
+  FileText,
 };
 
 export type IconName = keyof typeof ICON_MAP;

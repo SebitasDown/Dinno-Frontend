@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { Typography } from '@/components/ui/Typography';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function BolsilloScreen() {
   const router = useRouter();
@@ -14,14 +14,11 @@ export default function BolsilloScreen() {
       <Typography variant="subtitle">Aquí podrás gestionar tus ahorros y gastos.</Typography>
 
       <View style={styles.buttonWrapper}>
-         <Button 
-           label="Probar Cerrar Sesión" 
-           variant="secondary" 
-           onPress={async () => {
-             await logout();
-             router.replace('/');
-           }} 
-         />
+        <Button
+          label="Ir a Configuración"
+          variant="secondary"
+          onPress={() => router.push('/configuracion')}
+        />
       </View>
     </View>
   );

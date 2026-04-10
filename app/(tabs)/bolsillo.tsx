@@ -1,38 +1,67 @@
-import { Button } from '@/components/ui/Button';
-import { Typography } from '@/components/ui/Typography';
-import { useAuthStore } from '@/store/authStore';
-import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors } from '@/constants/Colors';
+
+import { HeaderBolsillo } from '@/components/bolsillo/HeaderBolsillo';
+import { MainBalanceCard } from '@/components/bolsillo/MainBalanceCard';
+import { TabSelector } from '@/components/ui/TabSelector';
+import { ResumenTab } from '@/components/bolsillo/ResumenTab';
+import { GastosTab } from '@/components/bolsillo/GastosTab';
+import { ProyeccionTab } from '@/components/bolsillo/ProyeccionTab';
 
 export default function BolsilloScreen() {
-  const router = useRouter();
-  const logout = useAuthStore((state) => state.logout);
+  const [activeTab, setActiveTab] = useState('Resumen');
+  const tabs = ['Resumen', 'Movimientos', 'Proyección'];
+  const insets = useSafeAreaInsets();
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'Resumen': return <ResumenTab />;
+      case 'Movimientos': return <GastosTab />;
+      case 'Proyección': return <ProyeccionTab />;
+      default: return <ResumenTab />;
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Typography variant="h1">Bolsillo 💰</Typography>
-      <Typography variant="subtitle">Aquí podrás gestionar tus ahorros y gastos.</Typography>
-
-      <View style={styles.buttonWrapper}>
-        <Button
-          label="Ir a Configuración"
-          variant="secondary"
-          onPress={() => router.push('/configuracion')}
-        />
+    <View style={[styles.safeArea, { paddingTop: Math.max(insets.top, 20) }]}>
+      <View style={styles.headerWrapper}>
+        <HeaderBolsillo />
       </View>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <MainBalanceCard />
+        <TabSelector 
+          tabs={tabs} 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+        />
+        <View style={styles.tabContentContainer}>
+          {renderContent()}
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#0F1115',
+    backgroundColor: Colors.dark.background,
   },
-  buttonWrapper: {
-    marginTop: 40,
-    width: '80%',
-  }
+  headerWrapper: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: Colors.dark.background,
+  },
+  scrollContent: {
+    padding: 24,
+    paddingTop: 8,
+    paddingBottom: 40,
+  },
+  tabContentContainer: {
+    flex: 1,
+    marginTop: 8,
+  },
 });

@@ -1,8 +1,9 @@
 import { Colors } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar } from '@/components/profile/Avatar';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +16,7 @@ import { useUserStore } from '@/store/userStore';
 
 export default function ConfigurationScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const userProfile = useUserStore((state) => state.profile);
   const setProfile = useUserStore((state) => state.setProfile);
   const fetchAndSyncProfile = useUserStore((state) => state.fetchAndSyncProfile);
@@ -95,14 +97,18 @@ export default function ConfigurationScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.safeArea, { paddingTop: Math.max(insets.top, 24) }]}>
+      
+      {/* Header fijo superior empujado por Insets Manuales para que NUNCA quede pegado a la cámara */}
+      <View style={[styles.header, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 16, position: 'relative' }]}>
+        <TouchableOpacity onPress={() => router.back()} style={{ position: 'absolute', left: 16, top: 10, padding: 4, zIndex: 10 }}>
+          <Ionicons name="chevron-back" size={28} color={Colors.dark.text} />
+        </TouchableOpacity>
+        <Text style={{ fontSize: 17, fontWeight: '600', color: Colors.dark.text }}>Configuraciones</Text>
+      </View>
+
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-          {/* Header */}
-          <View style={styles.header}>
-            <Typography variant="h1" style={styles.headerTitle}>Configuración</Typography>
-          </View>
 
           {/* Componente: Avatar */}
           <Avatar
@@ -172,7 +178,7 @@ export default function ConfigurationScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 

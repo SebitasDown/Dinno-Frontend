@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { loadTokenFromStorage, useAuthStore } from '@/store/authStore';
+import { useUserStore } from '@/store/userStore';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -28,6 +29,10 @@ export default function RootLayout() {
       try {
         // Pre-load session info
         await loadTokenFromStorage();
+        // Global load of profile settings (like dark mode and ids)
+        const { loadProfile, fetchAndSyncProfile } = useUserStore.getState();
+        await loadProfile();
+        fetchAndSyncProfile(); // Llama a sync en segundo plano
       } catch (e) {
         console.warn(e);
       } finally {
@@ -68,6 +73,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="chat" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen name="configuracion" options={{ headerShown: false }} />
+        <Stack.Screen name="nuevo-movimiento" options={{ presentation: 'transparentModal', headerShown: false, animation: 'slide_from_bottom' }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

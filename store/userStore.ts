@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
 import { userService } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
+import * as SecureStore from 'expo-secure-store';
+import { create } from 'zustand';
 
 export interface UserProfile {
   name: string;
@@ -18,7 +18,7 @@ interface UserState {
   loadProfile: () => Promise<void>;
   fetchAndSyncProfile: () => Promise<void>;
   clearProfile: () => Promise<void>;
-  
+
   // Soporte Offline-First para Ajustes
   savePendingUpdate: (key: 'darkMode' | 'notificationsEnabled', value: boolean) => Promise<void>;
   syncPendingUpdates: () => Promise<void>;
@@ -52,7 +52,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await get().syncPendingUpdates();
 
       const data = await userService.getProfile();
-      
+
       // Intentar extraer el email desde el Token guardado
       let tokenEmail = '';
       const token = useAuthStore.getState().token;
@@ -73,7 +73,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       // Adaptar el mapeo
       const updatedProfile: UserProfile = {
         name: data.fullName || data.name || data.username || '',
-        email: data.email || tokenEmail || '', 
+        email: data.email || tokenEmail || '',
         bio: data.bio || '',
         imageUrl: data.profilePictureUrl || undefined,
         notificationsEnabled: data.notificationsEnabled ?? true,

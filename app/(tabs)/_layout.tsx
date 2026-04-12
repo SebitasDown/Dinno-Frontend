@@ -1,36 +1,46 @@
 import { Tabs, useRouter } from 'expo-router';
-import { View, StyleSheet, useColorScheme } from 'react-native';
-import { Wallet, ChefHat, Bot, Zap, Shield } from 'lucide-react-native';
-import { Colors } from '@/constants/Colors';
+import { Bot, ChefHat, Shield, Wallet, Zap } from 'lucide-react-native';
+import { StyleSheet, View } from 'react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 // Componente para el botón central elevado
-const CustomTabBarButton = ({ children, onPress }: any) => (
-  <View style={styles.customButtonContainer}>
-    <View style={styles.customButtonWrapper} onTouchEnd={onPress}>
-      {children}
+const CustomTabBarButton = ({ children, onPress }: any) => {
+  const { colors: themeColors, isDark } = useAppTheme();
+  
+  return (
+    <View style={styles.customButtonContainer}>
+      <View style={[
+        styles.customButtonWrapper, 
+        { 
+          backgroundColor: themeColors.inputSurface, 
+          borderColor: themeColors.inputBorder,
+          shadowColor: isDark ? '#000' : '#4A90E2',
+        }
+      ]} onTouchEnd={onPress}>
+        {children}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 export default function TabLayout() {
-  const theme = useColorScheme() ?? 'dark';
-  const themeColors = Colors[theme as keyof typeof Colors];
+  const { colors: themeColors } = useAppTheme();
   const router = useRouter();
 
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // Oculta el header superior si no lo necesitas
+        headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: themeColors.primary, // Naranja para el tab activo
-        tabBarInactiveTintColor: themeColors.subtleText, // Gris para inactivos
+        tabBarActiveTintColor: themeColors.primary,
+        tabBarInactiveTintColor: themeColors.subtleText,
         tabBarStyle: {
-          backgroundColor: themeColors.inputSurface, // Fondo oscuro de la barra
+          backgroundColor: themeColors.background,
           borderTopWidth: 1,
           borderTopColor: themeColors.inputBorder,
-          height: 80, // Altura para acomodar los labels
-          paddingBottom: 10,
+          height: 90,
           paddingTop: 10,
+          paddingBottom: 25,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -58,20 +68,20 @@ export default function TabLayout() {
 
       {/* 3. Botón Central (Dinno) */}
       <Tabs.Screen
-        name="bot" // Redirige al dummy `bot.tsx` pero interceptaremos el clic
+        name="bot"
         options={{
-          title: '', // Sin título para el botón central
+          title: '',
           tabBarIcon: ({ focused }) => (
-            <Bot 
-              size={32} 
-              color={focused ? themeColors.primary : themeColors.text} 
-              strokeWidth={1.5} 
+            <Bot
+              size={32}
+              color={focused ? themeColors.primary : themeColors.text}
+              strokeWidth={1.5}
             />
           ),
           tabBarButton: (props) => (
-            <CustomTabBarButton 
-              {...props} 
-              onPress={() => router.push('/chat' as any)} 
+            <CustomTabBarButton
+              {...props}
+              onPress={() => router.push('/chat' as any)}
             />
           ),
         }}
@@ -81,7 +91,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="energia"
         options={{
-          title: 'Energia',
+          title: 'Energía',
           tabBarIcon: ({ color }) => <Zap size={24} color={color} strokeWidth={1.5} />,
         }}
       />
@@ -100,21 +110,17 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   customButtonContainer: {
-    top: -20, // Eleva el botón por encima de la barra
+    top: -20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   customButtonWrapper: {
     width: 60,
     height: 60,
-    borderRadius: 20, // Forma de 'squircle' como en tu diseño
-    backgroundColor: '#1A1C1E', // Fondo oscuro del botón central
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2C2F36', // Borde sutil
-    // Sombra para darle profundidad
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 4,

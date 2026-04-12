@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
-
 import { HeaderBolsillo } from '@/components/bolsillo/HeaderBolsillo';
 import { MainBalanceCard } from '@/components/bolsillo/MainBalanceCard';
-import { TabSelector } from '@/components/ui/TabSelector';
 import { ResumenTab } from '@/components/bolsillo/ResumenTab';
 import { GastosTab } from '@/components/bolsillo/GastosTab';
 import { ProyeccionTab } from '@/components/bolsillo/ProyeccionTab';
+import { TabSelector } from '@/components/ui/TabSelector';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import React, { useState } from 'react';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function BolsilloScreen() {
+  const { colors: themeColors } = useAppTheme();
   const [activeTab, setActiveTab] = useState('Resumen');
   const tabs = ['Resumen', 'Movimientos', 'Proyección'];
   const insets = useSafeAreaInsets();
@@ -25,8 +25,8 @@ export default function BolsilloScreen() {
   };
 
   return (
-    <View style={[styles.safeArea, { paddingTop: Math.max(insets.top, 20) }]}>
-      <View style={styles.headerWrapper}>
+    <View style={[styles.safeArea, { paddingTop: Math.max(insets.top, 20), backgroundColor: themeColors.background }]}>
+      <View style={[styles.headerWrapper, { backgroundColor: themeColors.background }]}>
         <HeaderBolsillo />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -47,13 +47,11 @@ export default function BolsilloScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
   headerWrapper: {
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 8,
-    backgroundColor: Colors.dark.background,
   },
   scrollContent: {
     padding: 24,

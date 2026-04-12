@@ -6,12 +6,20 @@ export type DinnoMood = 'normal' | 'surprised' | 'sad';
 
 interface DinnoLogoProps {
   mood?: DinnoMood;
+  scale?: number;
+  showBorder?: boolean;
+  showShadow?: boolean;
 }
 
-export const DinnoLogo: React.FC<DinnoLogoProps> = ({ mood = 'normal' }) => {
+export const DinnoLogo: React.FC<DinnoLogoProps> = ({ 
+  mood = 'normal', 
+  scale = 1,
+  showBorder = false,
+  showShadow = false
+}) => {
   const bgColor = '#0F1115';
   const pixelColor = '#38bdf8';
-  const p = 9;
+  const p = 9 * scale;
 
   // Valores de animación
   const eyeScaleY = useSharedValue(1);
@@ -80,36 +88,37 @@ export const DinnoLogo: React.FC<DinnoLogoProps> = ({ mood = 'normal' }) => {
 
   return (
     <View style={[styles.container, {
-      backgroundColor: bgColor,
       width: p * 10,
       height: p * 10,
       borderRadius: p * 2.2,
+      borderWidth: showBorder ? 1 : 0,
+      borderColor: '#1F2937',
+      // Shadow (iOS)
+      shadowColor: '#38bdf8',
+      shadowOpacity: showShadow ? 0.15 : 0,
+      shadowRadius: 12,
+      // Elevation (Android)
+      elevation: showShadow ? 4 : 0,
     }]}>
 
       {/* Ojos Animados */}
-      <View style={[styles.eyesWrapper, { gap: p * 2.2, marginBottom: p * 1.5 }]}>
+      <Animated.View style={[styles.eyesWrapper, { gap: p * 2.2 }]}>
         <Animated.View style={[styles.eye, eyeAnimatedStyle, { backgroundColor: pixelColor, width: p * 2, height: p * 2 }]} />
         <Animated.View style={[styles.eye, eyeAnimatedStyle, { backgroundColor: pixelColor, width: p * 2, height: p * 2 }]} />
-      </View>
+      </Animated.View>
+
+      <View style={{ height: p * 1.5 }} />
 
       {/* Boca Dinámica */}
       {renderMouth()}
-
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    borderWidth: 1,
-    borderColor: '#1F2937',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#38bdf8',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
   },
   eyesWrapper: {
     flexDirection: 'row',
@@ -120,7 +129,6 @@ const styles = StyleSheet.create({
   mouthWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    height: 18, // Altura fija para evitar saltos de layout
   },
   pixel: {
     borderRadius: 0,

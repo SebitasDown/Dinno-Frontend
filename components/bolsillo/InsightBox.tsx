@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { DinnoLogo } from '../ui/DinnoLogo';
+import { Typography } from '../ui/Typography';
 
 interface InsightBoxProps {
   type: 'dinno' | 'impact';
@@ -10,25 +12,37 @@ interface InsightBoxProps {
 
 export const InsightBox = ({ type, text }: InsightBoxProps) => {
   const isDinno = type === 'dinno';
-  
+  const { colors: themeColors, isDark } = useAppTheme();
+
   return (
-    <View style={[styles.container, isDinno ? styles.borderDinno : styles.borderImpact]}>
+    <View style={[
+      styles.container,
+      {
+        backgroundColor: isDark ? themeColors.inputSurface : '#EBF8FF', // Light blue from image
+        borderColor: isDark ? themeColors.inputBorder : '#BEE3F8'     // Subtle blue border
+      },
+    ]}>
       <View style={styles.iconContainer}>
         {isDinno ? (
           <View style={styles.dinnoIconBox}>
-             <MaterialCommunityIcons name="robot" size={16} color={Colors.dark.primary} />
+            <DinnoLogo scale={0.25} />
           </View>
         ) : (
-          <View style={styles.impactIconBox}>
-             <MaterialCommunityIcons name="flash" size={16} color={Colors.dark.primary} />
+          <View style={[styles.impactIconBox, { backgroundColor: themeColors.primary + '20' }]}>
+            <MaterialCommunityIcons name="flash" size={16} color={themeColors.primary} />
           </View>
         )}
       </View>
-      <View style={styles.content}>
-        <Text style={[styles.title, isDinno ? styles.titleDinno : styles.titleImpact]}>
+      <View style={styles.textContainer}>
+        <Typography variant="body" style={{ 
+          fontSize: 14, 
+          fontWeight: '700', 
+          color: isDinno ? themeColors.text : themeColors.primary,
+          marginBottom: 2
+        }}>
           {isDinno ? 'Análisis de Dinno' : 'Análisis de impacto'}
-        </Text>
-        <Text style={styles.text}>{text}</Text>
+        </Typography>
+        <Typography variant="body" style={{ color: themeColors.subtleText }}>{text}</Typography>
       </View>
     </View>
   );
@@ -39,15 +53,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     borderRadius: 16,
-    backgroundColor: Colors.dark.inputSurface,
     borderWidth: 1,
     marginBottom: 24,
-  },
-  borderDinno: {
-    borderColor: Colors.dark.inputBorder,
-  },
-  borderImpact: {
-    borderColor: Colors.dark.primary,
   },
   iconContainer: {
     marginRight: 12,
@@ -55,36 +62,17 @@ const styles = StyleSheet.create({
   dinnoIconBox: {
     width: 32,
     height: 32,
-    backgroundColor: Colors.dark.background,
-    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   impactIconBox: {
     width: 32,
     height: 32,
-    backgroundColor: 'rgba(249, 160, 97, 0.15)',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  content: {
+  textContainer: {
     flex: 1,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  titleDinno: {
-    color: Colors.dark.text,
-  },
-  titleImpact: {
-    color: Colors.dark.primary,
-  },
-  text: {
-    fontSize: 13,
-    color: Colors.dark.subtleText,
-    lineHeight: 18,
   },
 });

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
+import { View, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { transactionService } from '@/services/walletService';
 import { useWalletStore } from '@/store/walletStore';
+import { Typography } from '@/components/ui/Typography';
+import { getCategoryIcon } from '@/components/bolsillo/TransactionList';
 
 export default function NuevoMovimientoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useAppTheme();
   const [type, setType] = useState<'gasto' | 'ingreso'>('gasto');
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -35,7 +38,6 @@ export default function NuevoMovimientoScreen() {
         isFixed: isFixed
       });
       
-      // Actualizar billetera en segundo plano mágicamente
       const { fetchSummary, fetchProjection, fetchTransactions, fetchCategories } = useWalletStore.getState();
       fetchSummary();
       fetchProjection();
@@ -52,26 +54,24 @@ export default function NuevoMovimientoScreen() {
   };
 
   const expenseCategories = [
-    { id: '1', name: 'Vivienda', icon: '🏠' },
-    { id: '2', name: 'Comida', icon: '🍕' },
-    { id: '3', name: 'Transporte', icon: '🚗' },
-    { id: '4', name: 'Ocio', icon: '🎮' },
-    { id: '5', name: 'Compras', icon: '🛒' },
-    { id: '6', name: 'Otros', icon: '📦' },
+    { id: '1', name: 'Vivienda' },
+    { id: '2', name: 'Comida' },
+    { id: '3', name: 'Transporte' },
+    { id: '4', name: 'Servicios' },
+    { id: '5', name: 'Compras' },
+    { id: '6', name: 'Otros' },
   ];
 
   const incomeCategories = [
-    { id: '1', name: 'Nómina', icon: '💰' },
-    { id: '2', name: 'Ventas', icon: '📈' },
-    { id: '3', name: 'Inversiones', icon: '🏦' },
-    { id: '4', name: 'Regalos', icon: '🎁' },
-    { id: '5', name: 'Freelance', icon: '💻' },
-    { id: '6', name: 'Otros', icon: '💎' },
+    { id: '1', name: 'Nomina' },
+    { id: '2', name: 'Freelance' },
+    { id: '3', name: 'Inversiones' },
+    { id: '4', name: 'Regalos' },
+    { id: '5', name: 'Otros' },
   ];
 
   const currentCategories = type === 'gasto' ? expenseCategories : incomeCategories;
 
-  // Actualizar la categoría si cambian de tab y la actual no pertenece
   React.useEffect(() => {
     const exists = currentCategories.find(c => c.name === category);
     if (!exists) {
@@ -86,139 +86,170 @@ export default function NuevoMovimientoScreen() {
     >
       <Pressable style={styles.backdropPressable} onPress={() => router.back()} />
       
-      <View style={[styles.bottomSheet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-        {/* Top Handle / Drag Indicator */}
+      <View style={[styles.bottomSheet, { 
+        backgroundColor: themeColors.inputSurface,
+        paddingBottom: Math.max(insets.bottom, 20) 
+      }]}>
         <View style={styles.handleContainer}>
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: themeColors.inputBorder }]} />
         </View>
 
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Nuevo movimiento</Text>
+          <Typography variant="h2" style={{ color: themeColors.text }}>Nuevo movimiento</Typography>
           <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-            <MaterialCommunityIcons name="close" size={24} color={Colors.dark.subtleText} />
+            <MaterialCommunityIcons name="close" size={24} color={themeColors.subtleText} />
           </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
-          {/* Type Selector */}
-          <View style={styles.typeSelector}>
+          <View style={[styles.typeSelector, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
             <TouchableOpacity 
-              style={[styles.typeButton, type === 'gasto' && styles.typeButtonActive]}
+              style={[
+                styles.typeButton, 
+                type === 'gasto' && { backgroundColor: themeColors.inputSurface, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4 }
+              ]}
               onPress={() => setType('gasto')}
             >
               <MaterialCommunityIcons 
                 name="arrow-bottom-right" 
                 size={16} 
-                color={type === 'gasto' ? Colors.dark.text : Colors.dark.subtleText} 
+                color={type === 'gasto' ? themeColors.text : themeColors.subtleText} 
               />
-              <Text style={[styles.typeText, type === 'gasto' && styles.typeTextActive]}>
+              <Typography variant="body" style={{ 
+                color: type === 'gasto' ? themeColors.text : themeColors.subtleText,
+                fontWeight: type === 'gasto' ? '700' : '400'
+              }}>
                 Gasto
-              </Text>
+              </Typography>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.typeButton, type === 'ingreso' && styles.typeButtonActive]}
+              style={[
+                styles.typeButton, 
+                type === 'ingreso' && { backgroundColor: themeColors.inputSurface, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4 }
+              ]}
               onPress={() => setType('ingreso')}
             >
               <MaterialCommunityIcons 
                 name="arrow-top-right" 
                 size={16} 
-                color={type === 'ingreso' ? Colors.dark.text : Colors.dark.subtleText} 
+                color={type === 'ingreso' ? themeColors.text : themeColors.subtleText} 
               />
-              <Text style={[styles.typeText, type === 'ingreso' && styles.typeTextActive]}>
+              <Typography variant="body" style={{ 
+                color: type === 'ingreso' ? themeColors.text : themeColors.subtleText,
+                fontWeight: type === 'ingreso' ? '700' : '400'
+              }}>
                 Ingreso
-              </Text>
+              </Typography>
             </TouchableOpacity>
           </View>
 
-          {/* Error Message */}
           {errorMsg ? (
-            <Text style={{ color: '#ef4444', marginBottom: 12, fontWeight: '500' }}>{errorMsg}</Text>
+            <Typography variant="body" style={{ color: '#ef4444', marginBottom: 12, fontWeight: '700' }}>{errorMsg}</Typography>
           ) : null}
 
-          {/* Inputs */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre</Text>
+            <Typography variant="body" style={{ color: themeColors.subtleText, fontWeight: '700', marginBottom: 8 }}>Nombre</Typography>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { 
+                backgroundColor: themeColors.background, 
+                borderColor: themeColors.inputBorder,
+                color: themeColors.text
+              }]}
               placeholder="ej: Supermercado"
-              placeholderTextColor={Colors.dark.subtleText}
+              placeholderTextColor={themeColors.subtleText}
               value={name}
               onChangeText={setName}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Monto</Text>
+            <Typography variant="body" style={{ color: themeColors.subtleText, fontWeight: '700', marginBottom: 8 }}>Monto</Typography>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { 
+                backgroundColor: themeColors.background, 
+                borderColor: themeColors.inputBorder,
+                color: themeColors.text
+              }]}
               placeholder="0.00"
-              placeholderTextColor={Colors.dark.subtleText}
+              placeholderTextColor={themeColors.subtleText}
               keyboardType="decimal-pad"
               value={amount}
               onChangeText={setAmount}
             />
           </View>
 
-          {/* Categories */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Categoría</Text>
+            <Typography variant="body" style={{ color: themeColors.subtleText, fontWeight: '700', marginBottom: 8 }}>Categoría</Typography>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false} 
               contentContainerStyle={styles.categoriesGrid}
             >
-              {currentCategories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={[
-                    styles.categoryPill,
-                    category === cat.name && styles.categoryPillActive
-                  ]}
-                  onPress={() => setCategory(cat.name)}
-                >
-                  <Text style={styles.categoryIcon}>{cat.icon}</Text>
-                  <Text style={[
-                    styles.categoryText,
-                    category === cat.name && styles.categoryTextActive
-                  ]}>
-                    {cat.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {currentCategories.map((cat) => {
+                const isActive = category === cat.name;
+                const catInfo = getCategoryIcon(cat.name);
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[
+                      styles.categoryPill,
+                      { backgroundColor: themeColors.background, borderColor: themeColors.inputBorder },
+                      isActive && { backgroundColor: themeColors.primary, borderColor: themeColors.primary }
+                    ]}
+                    onPress={() => setCategory(cat.name)}
+                  >
+                    <MaterialCommunityIcons 
+                      name={catInfo.name} 
+                      size={18} 
+                      color={isActive ? (isDark ? '#000' : '#FFF') : catInfo.color} 
+                    />
+                    <Typography variant="body" style={{ 
+                      color: isActive ? (isDark ? '#000' : '#FFF') : themeColors.text,
+                      fontWeight: '700',
+                      fontSize: 13
+                    }}>
+                      {cat.name.charAt(0).toUpperCase() + cat.name.slice(1).toLowerCase()}
+                    </Typography>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
 
-          {/* Gasto fijo switch */}
-          <View style={styles.fixedGroup}>
+          <View style={[styles.fixedGroup, { backgroundColor: themeColors.background, borderColor: themeColors.inputBorder }]}>
             <View style={styles.switchWrapper}>
               <Switch
                 value={isFixed}
                 onValueChange={setIsFixed}
-                trackColor={{ false: Colors.dark.inputBorder, true: Colors.dark.primary }}
+                trackColor={{ false: themeColors.inputBorder, true: themeColors.primary }}
                 thumbColor="#FFFFFF"
               />
             </View>
             <View>
-              <Text style={styles.fixedLabel}>{type === 'gasto' ? 'Gasto fijo' : 'Ingreso fijo'}</Text>
-              <Text style={styles.fixedSubLabel}>Se repite cada mes</Text>
+              <Typography variant="body" style={{ color: themeColors.text, fontWeight: '700' }}>
+                {type === 'gasto' ? 'Gasto fijo' : 'Ingreso fijo'}
+              </Typography>
+              <Typography variant="body" style={{ color: themeColors.subtleText, fontSize: 12 }}>Se repite cada mes</Typography>
             </View>
           </View>
 
         </ScrollView>
 
-        {/* Footer Button */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { borderTopColor: themeColors.inputBorder }]}>
           <TouchableOpacity 
-            style={[styles.submitButton, isLoading && { opacity: 0.7 }]} 
+            style={[styles.submitButton, { backgroundColor: themeColors.primary }, isLoading && { opacity: 0.7 }]} 
             onPress={handleSubmit}
             disabled={isLoading}
           >
-            <MaterialCommunityIcons name="check" size={16} color="#0F1115" />
-            <Text style={styles.submitButtonText}>
+            <MaterialCommunityIcons name="check" size={20} color={isDark ? '#000' : '#FFF'} />
+            <Typography variant="body" style={{ 
+              color: isDark ? '#000' : '#FFF', 
+              fontWeight: '700',
+              fontSize: 16
+            }}>
               {isLoading ? 'Registrando...' : `Registrar ${type}`}
-            </Text>
+            </Typography>
           </TouchableOpacity>
         </View>
       </View>
@@ -236,7 +267,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   bottomSheet: {
-    backgroundColor: Colors.dark.inputSurface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
@@ -249,7 +279,6 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: Colors.dark.inputBorder,
     borderRadius: 2,
   },
   header: {
@@ -258,11 +287,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   closeBtn: {
     padding: 4,
@@ -273,7 +297,6 @@ const styles = StyleSheet.create({
   },
   typeSelector: {
     flexDirection: 'row',
-    backgroundColor: Colors.dark.background,
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
@@ -287,78 +310,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 6,
   },
-  typeButtonActive: {
-    backgroundColor: Colors.dark.inputSurface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  typeText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.dark.subtleText,
-  },
-  typeTextActive: {
-    color: Colors.dark.text,
-  },
   inputGroup: {
     marginBottom: 20,
   },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.dark.subtleText,
-    marginBottom: 8,
-  },
   input: {
-    backgroundColor: Colors.dark.background,
     borderWidth: 1,
-    borderColor: Colors.dark.inputBorder,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: Colors.dark.text,
   },
   categoriesGrid: {
     flexDirection: 'row',
     gap: 12,
-    paddingRight: 20, // Agregado para que no se corte al final del scroll horizontal
+    paddingRight: 20,
   },
   categoryPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.dark.background,
     borderWidth: 1,
-    borderColor: Colors.dark.inputBorder,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     gap: 6,
   },
-  categoryPillActive: {
-    backgroundColor: Colors.dark.primary,
-    borderColor: Colors.dark.primary,
-  },
-  categoryIcon: {
-    fontSize: 16,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.dark.subtleText,
-  },
-  categoryTextActive: {
-    color: '#0F1115', // Dark background color to provide high contrast with primary orange background
-  },
   fixedGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.dark.background,
     borderWidth: 1,
-    borderColor: Colors.dark.inputBorder,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -367,34 +346,17 @@ const styles = StyleSheet.create({
   switchWrapper: {
     transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
   },
-  fixedLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.dark.text,
-    marginBottom: 2,
-  },
-  fixedSubLabel: {
-    fontSize: 13,
-    color: Colors.dark.subtleText,
-  },
   footer: {
     paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.dark.inputBorder,
   },
   submitButton: {
     flexDirection: 'row',
-    backgroundColor: Colors.dark.primary,
     borderRadius: 12,
     paddingVertical: 16,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-  },
-  submitButtonText: {
-    color: '#0F1115', // using deep background dark for good contrast with the bright primary orange
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

@@ -1,38 +1,45 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useWalletStore } from '@/store/walletStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Colors } from '@/constants/Colors';
-import { useWalletStore } from '@/store/walletStore';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { formatCOP } from './MainBalanceCard';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Typography } from '../ui/Typography';
 
 export const getCategoryIcon = (category: string) => {
-  const map: Record<string, string> = {
-    'VIVIENDA': '🏠',
-    'COMIDA': '🍕',
-    'TRANSPORTE': '🚗',
-    'OCIO': '🎮',
-    'COMPRAS': '🛒',
-    'NÓMINA': '💰',
-    'NOMINA': '💰',
-    'VENTAS': '📈',
-    'INVERSIONES': '🏦',
-    'REGALOS': '🎁',
-    'FREELANCE': '💻',
-    'OTROS': '📦'
+  const normalized = category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  const map: Record<string, { name: any, color: string }> = {
+    'alimentacion': { name: 'food', color: '#FF8C67' },
+    'comida': { name: 'food', color: '#FF8C67' },
+    'transporte': { name: 'car', color: '#57A6A1' },
+    'vivienda': { name: 'home', color: '#7E63B8' },
+    'servicios': { name: 'flash', color: '#F4D35E' },
+    'salud': { name: 'medical-bag', color: '#EE6C4D' },
+    'educacion': { name: 'book-open-variant', color: '#2F80ED' },
+    'entretenimiento': { name: 'movie', color: '#F25C54' },
+    'compras': { name: 'cart', color: '#43AA8B' },
+    'ahorro': { name: 'piggy-bank', color: '#1498B0' },
+    'nomina': { name: 'bank', color: '#27AE60' },
+    'freelance': { name: 'laptop', color: '#4F5D75' },
+    'inversiones': { name: 'trending-up', color: '#118AB2' },
+    'regalos': { name: 'gift', color: '#EF476F' },
+    'otros': { name: 'dots-horizontal', color: '#707070' },
   };
-  return map[category?.toUpperCase()] || '📦';
+
+  return map[normalized] || { name: 'cash', color: '#707070' };
 };
 
-const formatDateDayMonth = (dateStr?: string) => {
-  if (!dateStr) return 'Reciente';
-  const d = new Date(dateStr);
-  const formatter = new Intl.DateTimeFormat('es-CO', { month: 'short', day: 'numeric' });
-  return formatter.format(d);
+const formatDateDayMonth = (dateString?: string) => {
+  if (!dateString) return 'Hoy';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
 };
 
 export const TransactionList = () => {
   const router = useRouter();
+  const { colors: themeColors } = useAppTheme();
   const transactions = useWalletStore((state) => state.recentTransactions);
   const loading = useWalletStore((state) => state.isLoadingTransactions);
   const fetchTransactions = useWalletStore((state) => state.fetchTransactions);
@@ -44,45 +51,50 @@ export const TransactionList = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.sectionTitle}>TRANSACCIONES RECIENTES</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/nuevo-movimiento')}>
-          <MaterialCommunityIcons name="plus" size={14} color={Colors.dark.primary} />
-          <Text style={styles.addButtonText}>Añadir</Text>
+        <Typography variant="body" style={{ color: themeColors.subtleText, fontWeight: '700' }}>Transacciones recientes</Typography>
+        <TouchableOpacity 
+          style={[styles.addButton, { backgroundColor: themeColors.primary + '20' }]} 
+          onPress={() => router.push('/nuevo-movimiento')}
+        >
+          <MaterialCommunityIcons name="plus" size={14} color={themeColors.primary} />
+          <Typography variant="body" style={{ color: themeColors.primary, fontSize: 12, fontWeight: '600' }}>Añadir</Typography>
         </TouchableOpacity>
       </View>
 
       {loading && transactions.length === 0 ? (
-        <ActivityIndicator color={Colors.dark.primary} style={{ marginTop: 20 }} />
+        <ActivityIndicator color={themeColors.primary} style={{ marginTop: 20 }} />
       ) : (
         <View style={styles.list}>
           {transactions.map((tx) => {
             const isIncome = tx.type === 'INCOME';
-            const iconBg = isIncome ? 'rgba(76, 175, 80, 0.1)' : Colors.dark.background;
+            // Background suave para el icono: Verde traslúcido para ingresos, Pizarra muy suave para gastos
+            const catInfo = getCategoryIcon(tx.category);
+            const iconBg = catInfo.color + '15';
 
             return (
-              <View key={tx.id || Math.random().toString()} style={styles.transactionItem}>
+              <View key={tx.id || Math.random().toString()} style={[styles.transactionItem, { backgroundColor: themeColors.inputSurface, borderColor: themeColors.inputBorder }]}>
                 <View style={[styles.iconBox, { backgroundColor: iconBg }]}>
-                  <Text style={styles.icon}>{getCategoryIcon(tx.category)}</Text>
+                  <MaterialCommunityIcons name={catInfo.name} size={22} color={catInfo.color} />
                 </View>
                 <View style={styles.info}>
                   <View style={styles.nameRow}>
-                    <Text style={styles.name}>{tx.description}</Text>
+                    <Typography variant="body" style={{ fontSize: 14, fontWeight: '700', color: themeColors.text }}>{tx.description}</Typography>
                     {tx.isFixed && (
-                      <View style={styles.fixedBadge}>
-                        <Text style={styles.fixedText}>FIJO</Text>
+                      <View style={[styles.fixedBadge, { backgroundColor: themeColors.primary + '20' }]}>
+                        <Typography variant="body" style={{ fontSize: 9, fontWeight: 'bold', color: themeColors.primary }}>FIJO</Typography>
                       </View>
                     )}
                   </View>
-                  <Text style={styles.date}>{formatDateDayMonth(tx.createdAt)}</Text>
+                  <Typography variant="body" style={{ fontSize: 12, color: themeColors.subtleText }}>{formatDateDayMonth(tx.createdAt)}</Typography>
                 </View>
-                <Text style={[styles.amount, isIncome && styles.incomeAmount]}>
+                <Typography variant="body" style={[styles.amount, { color: isIncome ? '#4CAF50' : themeColors.text }]}>
                   {isIncome ? '+' : '-'}{formatCOP(tx.amount)}
-                </Text>
+                </Typography>
               </View>
             );
           })}
           {transactions.length === 0 && (
-             <Text style={{color: Colors.dark.subtleText, textAlign: 'center', marginTop: 10}}>No hay movimientos recientes</Text>
+            <Typography variant="body" style={{ color: themeColors.subtleText, textAlign: 'center', marginTop: 10 }}>No hay movimientos recientes</Typography>
           )}
         </View>
       )}
@@ -92,7 +104,7 @@ export const TransactionList = () => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   header: {
     flexDirection: 'row',
@@ -100,24 +112,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.dark.subtleText,
-  },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(249, 160, 97, 0.1)',
+    gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
-  },
-  addButtonText: {
-    color: Colors.dark.primary,
-    fontSize: 12,
-    fontWeight: '600',
+    borderRadius: 12,
   },
   list: {
     gap: 12,
@@ -125,15 +126,13 @@ const styles = StyleSheet.create({
   transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.dark.inputSurface,
-    padding: 16,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.dark.inputBorder,
   },
   iconBox: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -148,35 +147,16 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     marginBottom: 2,
   },
-  name: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.dark.text,
-  },
   fixedBadge: {
-    backgroundColor: 'rgba(249, 160, 97, 0.1)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
     borderRadius: 4,
   },
-  fixedText: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: Colors.dark.primary,
-  },
-  date: {
-    fontSize: 12,
-    color: Colors.dark.subtleText,
-  },
   amount: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
-    color: Colors.dark.text,
-  },
-  incomeAmount: {
-    color: '#4CAF50',
   },
 });

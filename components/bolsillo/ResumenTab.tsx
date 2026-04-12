@@ -1,15 +1,30 @@
-import React from 'react';
-import { View } from 'react-native';
-import { InsightBox } from './InsightBox';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useIAStore } from '@/store/iaStore';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { CategoryGrid } from './CategoryGrid';
+import { InsightBox } from './InsightBox';
 
 export const ResumenTab = () => {
+  const { colors: themeColors } = useAppTheme();
+  const { dailyInsight, isLoadingDaily, fetchDailyInsight } = useIAStore();
+
+  useEffect(() => {
+    fetchDailyInsight();
+  }, []);
+
   return (
     <View style={{ flex: 1 }}>
-      <InsightBox 
-        type="dinno" 
-        text="Tu gasto en ocio subió un 15% este mes. Si mantienes el ritmo, tu margen será de $420."
-      />
+      {isLoadingDaily ? (
+        <View style={{ padding: 20, alignItems: 'center' }}>
+          <ActivityIndicator color={themeColors.primary} size="small" />
+        </View>
+      ) : (
+        <InsightBox 
+          type="dinno" 
+          text={dailyInsight?.insight || "Analizando tus finanzas..."}
+        />
+      )}
       <CategoryGrid />
     </View>
   );

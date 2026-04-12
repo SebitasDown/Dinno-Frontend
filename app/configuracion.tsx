@@ -1,9 +1,8 @@
-import { Colors } from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar } from '@/components/profile/Avatar';
 import { Button } from '@/components/ui/Button';
@@ -13,24 +12,25 @@ import { Typography } from '@/components/ui/Typography';
 import { userService } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { useUserStore } from '@/store/userStore';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 export default function ConfigurationScreen() {
+  const { colors: themeColors, isDark, toggleTheme } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const userProfile = useUserStore((state) => state.profile);
+  const logout = useAuthStore((state) => state.logout);
   const setProfile = useUserStore((state) => state.setProfile);
-  const fetchAndSyncProfile = useUserStore((state) => state.fetchAndSyncProfile);
-  const clearProfile = useUserStore((state) => state.clearProfile);
   const savePendingUpdate = useUserStore((state) => state.savePendingUpdate);
 
-  // Estados locales para el formulario de edición
+  // Estados locales para el formulario
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Toggles de configuración
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
 
   // Sincronizar el componente local cuando cambie la información en la base interna
   useEffect(() => {
@@ -39,26 +39,27 @@ export default function ConfigurationScreen() {
       setEmail(userProfile.email || '');
       setBio(userProfile.bio || '');
       setNotificationsEnabled(userProfile.notificationsEnabled ?? true);
-      setDarkMode(userProfile.darkMode ?? true);
     }
   }, [userProfile]);
 
-  // Consultar la API cuando cargue la pantalla
-  useEffect(() => {
-    fetchAndSyncProfile();
-  }, []);
+  const handleUpdateProfile = async () => {
+    setIsLoading(true);
+    const updateData = { name, bio };
 
-  const handleSave = async () => {
+    // 1. Actualización inmediata en el Store (Optimistic UI)
+    await setProfile(updateData);
+
+    // 2. Intentar actualizar en el Servidor
     try {
-      // 1. Guardar en el servidor a través de la API
-      await userService.updateProfile({ name, email, bio });
-
-      // 2. Persistir localmente
-      await setProfile({ name, email, bio });
-      Alert.alert('Éxito', 'Perfil guardado con éxito');
-    } catch (error) {
-      console.error('Error al guardar el perfil:', error);
-      Alert.alert('Error', 'Hubo un problema actualizando tu perfil en el servidor');
+      await userService.updateProfile(updateData);
+      Alert.alert('Éxito', 'Perfil actualizado correctamente.');
+    } catch (e) {
+      console.log('Fallo de red detectado, encolando actualización para Perfil.');
+      // En el store, savePendingUpdate acepta 'darkMode' | 'notificationsEnabled'
+      // Si no hay proceso para 'profile', simplemente informamos
+      Alert.alert('Modo Offline', 'No hay conexión. Por ahora las actualizaciones de perfil requieren internet.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -66,7 +67,7 @@ export default function ConfigurationScreen() {
     setNotificationsEnabled(value);
     await setProfile({ notificationsEnabled: value });
     try {
-      await userService.updateNotifications({ notificationsEnabled: value }); 
+      await userService.updateNotifications({ notificationsEnabled: value });
     } catch (e) {
       console.log('Fallo de red detectado, encolando actualización para Notificaciones.');
       await savePendingUpdate('notificationsEnabled', value);
@@ -74,108 +75,92 @@ export default function ConfigurationScreen() {
   };
 
   const handleToggleDarkMode = async (value: boolean) => {
-    setDarkMode(value);
-    await setProfile({ darkMode: value });
+    toggleTheme();
     try {
-      await userService.updateAppearance({ darkMode: value }); 
+      await userService.updateAppearance({ darkMode: value });
     } catch (e) {
       console.log('Fallo de red detectado, encolando actualización para Apariencia.');
       await savePendingUpdate('darkMode', value);
     }
   };
 
-  const handleLogout = async () => {
-    console.log('Saliendo...');
-    await clearProfile();
-
-    // Limpiar el token de la sesión real
-    const { logout } = useAuthStore.getState();
-    await logout();
-
-    // Redirigir a la pantalla inicial
+  const handleLogout = () => {
+    logout();
     router.replace('/');
   };
 
   return (
-    <View style={[styles.safeArea, { paddingTop: Math.max(insets.top, 24) }]}>
-      
-      {/* Header fijo superior empujado por Insets Manuales para que NUNCA quede pegado a la cámara */}
+    <View style={[styles.safeArea, { paddingTop: Math.max(insets.top, 24), backgroundColor: themeColors.background }]}>
+
+      {/* Header fijo superior */}
       <View style={[styles.header, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 16, position: 'relative' }]}>
         <TouchableOpacity onPress={() => router.back()} style={{ position: 'absolute', left: 16, top: 10, padding: 4, zIndex: 10 }}>
-          <Ionicons name="chevron-back" size={28} color={Colors.dark.text} />
+          <Ionicons name="chevron-back" size={28} color={themeColors.text} />
         </TouchableOpacity>
-        <Text style={{ fontSize: 17, fontWeight: '600', color: Colors.dark.text }}>Configuraciones</Text>
+        <Typography variant="h3" style={{ color: themeColors.text }}>Configuraciones</Typography>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
           {/* Componente: Avatar */}
           <Avatar
             imageUrl={userProfile?.imageUrl}
-            initial={name ? name[0].toUpperCase() : "U"} 
+            initial={name ? name[0].toUpperCase() : "U"}
             email={email}
             size={80}
-            onCameraPress={() => console.log('Cambiar foto')} 
+            onCameraPress={() => console.log('Cambiar foto')}
           />
 
           {/* Sección: Editar Perfil */}
-          <View style={styles.card}>
-            <Typography style={styles.sectionTitle}>Editar perfil</Typography>
+          <View style={[styles.card, { backgroundColor: themeColors.inputSurface, borderColor: themeColors.inputBorder, elevation: isDark ? 0 : 2 }]}>
+            <Typography variant="h3" style={[styles.sectionTitle, { color: themeColors.primary, marginBottom: 20 }]}>Editar perfil</Typography>
 
-            <Typography style={styles.label}>Nombre</Typography>
+            <Typography variant="body" style={[styles.label, { color: themeColors.subtleText, fontWeight: '700' }]}>Nombre</Typography>
             <Input iconName="User" value={name} onChangeText={setName} />
 
-            <Typography style={styles.label}>Correo (No modificable)</Typography>
+            <Typography variant="body" style={[styles.label, { color: themeColors.subtleText, fontWeight: '700', marginTop: 12 }]}>Correo (No modificable)</Typography>
             <Input iconName="Mail" value={email} onChangeText={setEmail} keyboardType="email-address" editable={false} style={{ opacity: 0.6 }} />
 
-            <Typography style={styles.label}>Bio</Typography>
+            <Typography variant="body" style={[styles.label, { color: themeColors.subtleText, fontWeight: '700', marginTop: 12 }]}>Bio</Typography>
             <Input
               iconName="FileText"
               value={bio}
               onChangeText={setBio}
-              placeholder="Cuéntanos sobre ti..."
-              multiline={true}
-              numberOfLines={4}
-              style={{ height: 100 }}
-              inputStyle={{ textAlignVertical: 'top' }} // Para que actúe como Text Area
+              multiline
+              //@ts-ignore
+              inputStyle={{ height: 80, textAlignVertical: 'top', paddingTop: 12 }}
             />
 
             <View style={styles.buttonWrapper}>
-              <Button label="Guardar cambios" onPress={handleSave} />
+              <Button label="Guardar cambios" onPress={handleUpdateProfile} isLoading={isLoading} />
             </View>
           </View>
 
           {/* Sección: Opciones */}
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: themeColors.inputSurface, borderColor: themeColors.inputBorder, elevation: isDark ? 0 : 2 }]}>
             <SettingsRow
               iconName="Bell"
               title="Notificaciones"
-              subtitle="Gestiona tus alertas"
+              subtitle="Alertas y recordatorios"
               hasSwitch
               switchValue={notificationsEnabled}
               onSwitchChange={handleToggleNotifications}
             />
             <SettingsRow
-              iconName="Moon"
+              iconName="Eye"
               title="Apariencia"
               subtitle="Tema y visualización"
               hasSwitch
-              switchValue={darkMode}
+              switchValue={isDark}
               onSwitchChange={handleToggleDarkMode}
             />
             <SettingsRow iconName="Shield" title="Privacidad" subtitle="Seguridad de tu cuenta" isLast onPress={() => { }} />
           </View>
 
-          {/* Componente: Botón de Cerrar Sesión usando el mismo SettingsRow */}
-          <SettingsRow
-            iconName="LogOut"
-            title="Cerrar sesión"
-            isDanger
-            isLast
-            onPress={handleLogout}
-          />
-
+          {/* Botón: Cerrar sesión */}
+          <View style={{ marginTop: 8 }}>
+            <Button label="Cerrar sesión" variant="outline" onPress={handleLogout} />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -183,16 +168,16 @@ export default function ConfigurationScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.dark.background },
+  safeArea: { flex: 1 },
   scrollContent: { padding: 24, paddingBottom: 40 },
   header: { marginBottom: 32, alignItems: 'center' },
-  headerTitle: { fontSize: 20 },
   card: {
-    backgroundColor: '#1A1C1E',
-    borderRadius: 16, padding: 20, marginBottom: 24,
-    borderWidth: 1, borderColor: '#2C2F36',
+    borderRadius: 16, 
+    padding: 20, 
+    marginBottom: 24,
+    borderWidth: 1, 
   },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 20 },
-  label: { fontSize: 12, color: Colors.dark.subtleText, marginBottom: 8, marginLeft: 4 },
-  buttonWrapper: { marginTop: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold' },
+  label: { fontSize: 12, marginBottom: 8, marginLeft: 4 },
+  buttonWrapper: { marginTop: 24 },
 });

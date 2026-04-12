@@ -20,8 +20,9 @@ export const userService = {
             console.log('--- RESPUESTA DEL SERVIDOR (Perfil) ---', JSON.stringify(response.data, null, 2));
             return response.data;
         } catch (error: any) {
-            console.error('--- ERROR EN PETICION GET ---');
-            console.error('Detalles del error:', error.response?.data || error.message);
+            const status = error.response?.status;
+            const message = error.response?.data?.message || error.message;
+            console.error(`[UserService] Error en getProfile (${status}):`, message);
             throw error;
         }
     },
@@ -44,8 +45,9 @@ export const userService = {
             console.log('--- RESPUESTA DEL SERVIDOR ---', JSON.stringify(response.data, null, 2));
             return response.data;
         } catch (error: any) {
-            console.error('--- ERROR EN PETICION PUT ---');
-            console.error('Detalles del error:', error.response?.data || error.message);
+            const status = error.response?.status;
+            const message = error.response?.data?.message || error.message;
+            console.error(`[UserService] Error en updateProfile (${status}):`, message);
             throw error;
         }
     },
@@ -58,7 +60,9 @@ export const userService = {
             console.log('[PATCH] Guardado correctamente en el backend (204 No Content)');
             return true;
         } catch (error: any) {
-            console.error('Error al actualizar apariencia:', error.response?.data || error.message);
+            const status = error.response?.status;
+            const message = error.response?.data?.message || error.message;
+            console.error(`[UserService] Error en updateAppearance (${status}):`, message);
             throw error;
         }
     },
@@ -71,7 +75,9 @@ export const userService = {
             console.log('[PATCH] Notificaciones actualizadas en el backend (204 No Content)');
             return true;
         } catch (error: any) {
-            console.error(' Error al actualizar notificaciones:', error.response?.data || error.message);
+            const status = error.response?.status;
+            const message = error.response?.data?.message || error.message;
+            console.error(`[UserService] Error en updateNotifications (${status}):`, message);
             throw error;
         }
     }

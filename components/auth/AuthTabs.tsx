@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { Colors } from '@/constants/Colors';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 export type AuthMode = 'login' | 'register';
 
@@ -13,9 +14,8 @@ export const AuthTabs: React.FC<AuthTabsProps> = ({
     activeMode,
     onChangeMode
 }) => {
-    const theme = useColorScheme() ?? 'dark';
-    const themeColors = Colors[theme as keyof typeof Colors] || Colors.dark;
- 
+    const { colors: themeColors, theme } = useAppTheme();
+
     return (
         <View style={styles.container}>
             <TouchableOpacity
@@ -28,7 +28,7 @@ export const AuthTabs: React.FC<AuthTabsProps> = ({
                 <Text
                     style={[
                         styles.tabText,
-                        { color: activeMode === 'login' ? '#1A1C1E' : themeColors.subtleText }
+                        { color: activeMode === 'login' ? (theme === 'dark' ? '#1A1C1E' : '#FFFFFF') : themeColors.subtleText }
                     ]}
                 >
                     Iniciar sesión
@@ -45,7 +45,7 @@ export const AuthTabs: React.FC<AuthTabsProps> = ({
                 <Text
                     style={[
                         styles.tabText,
-                        { color: activeMode === 'register' ? '#1A1C1E' : themeColors.subtleText }
+                        { color: activeMode === 'register' ? (theme === 'dark' ? '#1A1C1E' : '#FFFFFF') : themeColors.subtleText }
                     ]}
                 >
                     Registrarse

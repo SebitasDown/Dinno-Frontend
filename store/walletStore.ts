@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { walletService, transactionService, WalletSummary, WalletProjection, Transaction, CategorySummary } from '@/services/walletService';
+import * as SecureStore from 'expo-secure-store';
 
 interface WalletState {
   summary: WalletSummary | null;
@@ -16,7 +17,10 @@ interface WalletState {
   fetchTransactions: () => Promise<void>;
   fetchCategories: () => Promise<void>;
   clearWalletData: () => void;
+  loadWalletData: () => Promise<void>;
 }
+
+const WALLET_CACHE_KEY = 'wallet_cache_data';
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   summary: null,
@@ -28,8 +32,24 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   isLoadingTransactions: false,
   isLoadingCategories: false,
 
+  loadWalletData: async () => {
+    try {
+      const stored = await SecureStore.getItemAsync(WALLET_CACHE_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        set({
+          summary: data.summary || null,
+          projection: data.projection || null,
+          recentTransactions: data.recentTransactions || [],
+          categories: data.categories || []
+        });
+      }
+    } catch (e) {
+      console.error('Error loading wallet cache:', e);
+    }
+  },
+
   fetchSummary: async () => {
-    // Si ya hay datos, evitamos mostrar el spinner de carga inicial
     if (!get().summary) {
       set({ isLoadingSummary: true });
     }
@@ -37,6 +57,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     try {
       const data = await walletService.getSummary();
       set({ summary: data });
+      
+      // Persistir
+      const current = await SecureStore.getItemAsync(WALLET_CACHE_KEY);
+      const cache = current ? JSON.parse(current) : {};
+      await SecureStore.setItemAsync(WALLET_CACHE_KEY, JSON.stringify({ ...cache, summary: data }));
     } catch (error) {
       console.log('Error al cargar summary en store');
     } finally {
@@ -52,6 +77,10 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     try {
       const data = await walletService.getProjection();
       set({ projection: data });
+
+      const current = await SecureStore.getItemAsync(WALLET_CACHE_KEY);
+      const cache = current ? JSON.parse(current) : {};
+      await SecureStore.setItemAsync(WALLET_CACHE_KEY, JSON.stringify({ ...cache, projection: data }));
     } catch (error) {
       console.log('Error al cargar projection en store');
     } finally {
@@ -67,6 +96,10 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     try {
       const data = await transactionService.getRecentTransactions();
       set({ recentTransactions: data });
+
+      const current = await SecureStore.getItemAsync(WALLET_CACHE_KEY);
+      const cache = current ? JSON.parse(current) : {};
+      await SecureStore.setItemAsync(WALLET_CACHE_KEY, JSON.stringify({ ...cache, recentTransactions: data }));
     } catch (error) {
       console.log('Error al cargar transacciones en store');
     } finally {
@@ -80,8 +113,12 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     }
     try {
       const data = await transactionService.getCategorySummary();
-      // Se muestran todas, incluso si están en 0
-      set({ categories: data.sort((a,b) => b.amount - a.amount) });
+      const sorted = data.sort((a,b) => b.amount - a.amount);
+      set({ categories: sorted });
+
+      const current = await SecureStore.getItemAsync(WALLET_CACHE_KEY);
+      const cache = current ? JSON.parse(current) : {};
+      await SecureStore.setItemAsync(WALLET_CACHE_KEY, JSON.stringify({ ...cache, categories: sorted }));
     } catch (error) {
       console.log('Error al cargar categorias en store');
     } finally {
@@ -91,5 +128,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   clearWalletData: () => {
     set({ summary: null, projection: null, recentTransactions: [], categories: [] });
+    SecureStore.deleteItemAsync(WALLET_CACHE_KEY);
   }
 }));

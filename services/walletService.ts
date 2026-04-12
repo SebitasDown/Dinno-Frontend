@@ -53,13 +53,9 @@ export const walletService = {
       // console.log('--- RESPUESTA DEL SERVIDOR (Billetera) ---', JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error: any) {
-      console.error('--- ERROR EN PETICION GET BILLETERA ---');
       const status = error.response?.status;
-      if (status === 404 || status === 502 || status === 503 || status === 401) {
-        console.error('Problema en el Gateway o Token. Status:', status);
-      } else {
-        console.error('Mensaje de error:', error.message);
-      }
+      const message = error.response?.data?.message || error.message;
+      console.error(`[WalletService] Error en getSummary (${status}):`, message);
       throw error;
     }
   },
@@ -70,7 +66,9 @@ export const walletService = {
       const response = await api.get('/api/wallets/projection', getAuthHeaders());
       return response.data;
     } catch (error: any) {
-      console.error('Error GET /api/wallets/projection:', error.message);
+      const status = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+      console.error(`[WalletService] Error en getProjection (${status}):`, message);
       throw error;
     }
   }
@@ -83,7 +81,9 @@ export const transactionService = {
       const response = await api.post('/api/transactions', data, getAuthHeaders());
       return response.data;
     } catch (error: any) {
-      console.error('Error POST /api/transactions:', error.message);
+      const status = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+      console.error(`[TransactionService] Error en registerTransaction (${status}):`, message);
       throw error;
     }
   },
@@ -94,7 +94,9 @@ export const transactionService = {
       const response = await api.get('/api/transactions/recent', getAuthHeaders());
       return response.data;
     } catch (error: any) {
-      console.error('Error GET /api/transactions/recent:', error.message);
+      const status = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+      console.error(`[TransactionService] Error en getRecentTransactions (${status}):`, message);
       throw error;
     }
   },
@@ -109,7 +111,9 @@ export const transactionService = {
       }));
       return categories;
     } catch (error: any) {
-      console.error('Error GET /api/transactions/categories:', error.message);
+      const status = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+      console.error(`[TransactionService] Error en getCategorySummary (${status}):`, message);
       throw error;
     }
   }

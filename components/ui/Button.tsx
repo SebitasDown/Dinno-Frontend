@@ -1,20 +1,20 @@
+import { Colors } from '@/constants/Colors';
+import { ArrowRight } from 'lucide-react-native';
 import React from 'react';
 import {
-    TouchableOpacity,
     ActivityIndicator,
     StyleSheet,
-    useColorScheme,
-    View,
-    Text
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
-import { ArrowRight } from 'lucide-react-native';
-import { Colors } from '@/constants/Colors';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface ButtonProps {
     label: string;
     onPress: () => void;
     isLoading?: boolean;
-    variant?: 'primary' | 'secondary';
+    variant?: 'primary' | 'outline';
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -23,10 +23,9 @@ export const Button: React.FC<ButtonProps> = ({
     isLoading = false,
     variant = 'primary'
 }) => {
-    const theme = useColorScheme() ?? 'dark';
-    const themeColors = Colors[theme as keyof typeof Colors] || Colors.dark;
+    const { colors: themeColors, theme } = useAppTheme();
     const isPrimary = variant === 'primary';
-    
+
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -37,19 +36,19 @@ export const Button: React.FC<ButtonProps> = ({
                     backgroundColor: isPrimary ? themeColors.primary : 'transparent',
                     borderColor: isPrimary ? 'transparent' : themeColors.subtleText,
                     borderWidth: isPrimary ? 0 : 1,
-                }         
+                }
             ]}
             activeOpacity={0.8}
         >
             {isLoading ? (
-                <ActivityIndicator color={isPrimary ? '#1A1C1E' : themeColors.primary} />
+                <ActivityIndicator color={isPrimary ? (theme === 'dark' ? '#1A1C1E' : '#FFFFFF') : themeColors.primary} />
             ) : (
                 <View style={styles.content}>
-                    <Text style={[styles.label, { color: isPrimary ? '#1A1C1E' : themeColors.primary }]}>
+                    <Text style={[styles.label, { color: isPrimary ? (theme === 'dark' ? '#1A1C1E' : '#FFFFFF') : themeColors.primary }]}>
                         {label}
                     </Text>
                     <ArrowRight
-                        color={isPrimary ? '#1A1C1E' : themeColors.primary}
+                        color={isPrimary ? (theme === 'dark' ? '#1A1C1E' : '#FFFFFF') : themeColors.primary}
                         size={20}
                         strokeWidth={1.5}
                         style={styles.icon}
@@ -59,7 +58,7 @@ export const Button: React.FC<ButtonProps> = ({
         </TouchableOpacity>
     )
 }
-    
+
 const styles = StyleSheet.create({
     container: {
         width: '100%',

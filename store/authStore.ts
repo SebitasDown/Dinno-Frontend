@@ -1,28 +1,42 @@
-import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import { create } from 'zustand';
+
+import { useWalletStore } from './walletStore';
+import { useIAStore } from './iaStore';
 
 interface AuthState {
   token: string | null;
-  setToken: (token: string) => Promise<void>;
+  refreshToken: string | null;
+  setTokens: (token: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
-  setToken: async (token: string) => {
+  refreshToken: null,
+  setTokens: async (token: string, refreshToken: string) => {
     await SecureStore.setItemAsync('userToken', token);
-    set({ token });
+    await SecureStore.setItemAsync('refreshToken', refreshToken);
+    set({ token, refreshToken });
   },
   logout: async () => {
+    // Limpiar storage
     await SecureStore.deleteItemAsync('userToken');
-    set({ token: null });
+    await SecureStore.deleteItemAsync('refreshToken');
+    
+    // Limpiar todos los stores
+    useWalletStore.getState().clearWalletData();
+    useIAStore.getState().resetIAData();
+    
+    set({ token: null, refreshToken: null });
   },
 }));
 
 // Helper function to load token on app boot
 export const loadTokenFromStorage = async () => {
   const token = await SecureStore.getItemAsync('userToken');
-  if (token) {
-    useAuthStore.setState({ token });
+  const refreshToken = await SecureStore.getItemAsync('refreshToken');
+  if (token || refreshToken) {
+    useAuthStore.setState({ token, refreshToken });
   }
 };

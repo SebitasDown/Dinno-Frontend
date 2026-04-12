@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { Colors } from '@/constants/Colors';
 import { useWalletStore } from '@/store/walletStore';
-import { getCategoryIcon } from './TransactionList';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { formatCOP } from './MainBalanceCard';
+import { getCategoryIcon } from './TransactionList';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Typography } from '../ui/Typography';
 
 export const CategoryGrid = () => {
+  const { colors: themeColors } = useAppTheme();
   const categories = useWalletStore(state => state.categories);
   const loading = useWalletStore(state => state.isLoadingCategories);
   const fetchCategories = useWalletStore(state => state.fetchCategories);
@@ -16,21 +19,35 @@ export const CategoryGrid = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>GASTOS POR CATEGORÍA</Text>
-      
+      <Typography variant="body" style={{ color: themeColors.subtleText, fontWeight: '700', marginBottom: 16 }}>
+        Gastos por categoría
+      </Typography>
+
       {loading && categories.length === 0 ? (
-         <ActivityIndicator color={Colors.dark.primary} style={{ marginTop: 20 }} />
+        <ActivityIndicator color={themeColors.primary} style={{ marginTop: 20 }} />
       ) : (
         <View style={styles.grid}>
           {categories.map((cat) => (
-            <View key={cat.category} style={styles.card}>
-              <Text style={styles.icon}>{getCategoryIcon(cat.category)}</Text>
-              <Text style={styles.name} numberOfLines={1}>{cat.category}</Text>
-              <Text style={styles.amount}>{formatCOP(cat.amount)}</Text>
+            <View key={cat.category} style={[styles.card, { backgroundColor: themeColors.inputSurface, borderColor: themeColors.inputBorder }]}>
+              <View style={[styles.categoryIconBox, { backgroundColor: getCategoryIcon(cat.category).color + '20' }]}>
+                <MaterialCommunityIcons 
+                  name={getCategoryIcon(cat.category).name} 
+                  size={24} 
+                  color={getCategoryIcon(cat.category).color} 
+                />
+              </View>
+              <Typography variant="body" style={{ color: themeColors.text, fontWeight: '700', marginBottom: 4 }} numberOfLines={1}>
+                {cat.category.charAt(0).toUpperCase() + cat.category.slice(1).toLowerCase()}
+              </Typography>
+              <Typography variant="body" style={{ color: themeColors.primary, fontWeight: '700' } as any}>
+                {formatCOP(cat.amount)}
+              </Typography>
             </View>
           ))}
           {categories.length === 0 && (
-             <Text style={{color: Colors.dark.subtleText, width: '100%', textAlign: 'center'}}>No hay gastos registrados en el mes</Text>
+            <Typography variant="body" style={{ color: themeColors.subtleText, width: '100%', textAlign: 'center' }}>
+              No hay gastos registrados en el mes
+            </Typography>
           )}
         </View>
       )}
@@ -42,12 +59,6 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.dark.subtleText,
-    marginBottom: 16,
-  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -55,28 +66,19 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '31%',
-    backgroundColor: Colors.dark.inputSurface,
     borderWidth: 1,
-    borderColor: Colors.dark.inputBorder,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 8,
     alignItems: 'center',
     marginBottom: 12,
   },
-  icon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  name: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.dark.text,
-    marginBottom: 4,
-  },
-  amount: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.dark.primary,
+  categoryIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
 });

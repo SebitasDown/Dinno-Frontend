@@ -32,8 +32,9 @@ api.interceptors.response.use(
         const originalRequest = error.config;
         const status = error.response?.status;
         const url = error.config?.url;
+        const isAuthRequest = url?.includes('/api/auth/login') || url?.includes('/api/auth/register');
 
-        if ((status === 401 || (status === 404 && url?.includes('/api/'))) && !originalRequest._retry) {
+        if ((status === 401 || (status === 404 && url?.includes('/api/'))) && !originalRequest._retry && !isAuthRequest) {
             
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
@@ -79,6 +80,8 @@ api.interceptors.response.use(
                 const logout = useAuthStore.getState().logout;
                 await logout();
                 try { router.replace('/'); } catch(e) {}
+                // IMPORTANTE: Retornar el error original para que el front lo maneje
+                return Promise.reject(error);
             }
         }
         return Promise.reject(error);

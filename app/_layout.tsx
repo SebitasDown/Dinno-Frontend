@@ -55,6 +55,12 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (token && appIsReady) {
+      useUserStore.getState().fetchAndSyncProfile();
+    }
+  }, [token, appIsReady]);
+
+  useEffect(() => {
     if (!appIsReady) return;
 
     // Si no hay token y no intenta entrar al login, redirigir al login

@@ -61,7 +61,7 @@ export default function LoginScreen() {
     } catch (error: any) {
       console.error('Error al procesar autenticación:', error.response?.data || error.message);
       const status = error.response?.status;
-      const serverMessage = error.response?.data?.message || 'Algo salió mal. Inténtalo de nuevo.';
+      const serverMessage = error.response?.data?.detail || error.response?.data?.message || 'Algo salió mal. Inténtalo de nuevo.';
 
       if (status === 503) {
         setAlertInfo({ type: 'error', msg: 'El servidor está despertando. Por favor, espera unos segundos e intenta de nuevo.' });
@@ -118,7 +118,7 @@ export default function LoginScreen() {
           <View style={styles.formContainer}>
             {authMode === 'register' && (
               <Input
-                placeholder="Nombre completo"
+                placeholder="Usuario"
                 iconName="User"
                 value={name}
                 onChangeText={setName}

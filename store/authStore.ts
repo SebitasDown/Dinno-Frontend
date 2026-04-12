@@ -3,6 +3,7 @@ import { create } from 'zustand';
 
 import { useWalletStore } from './walletStore';
 import { useIAStore } from './iaStore';
+import { useUserStore } from './userStore';
 
 interface AuthState {
   token: string | null;
@@ -25,8 +26,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync('refreshToken');
     
     // Limpiar todos los stores
-    useWalletStore.getState().clearWalletData();
-    useIAStore.getState().resetIAData();
+    await useWalletStore.getState().clearWalletData();
+    await useIAStore.getState().resetIAData();
+    await useUserStore.getState().clearProfile();
     
     set({ token: null, refreshToken: null });
   },

@@ -45,9 +45,10 @@ export default function NuevoMovimientoScreen() {
       fetchCategories();
 
       router.back();
-    } catch (e) {
-      console.log('Error registranto transaccion', e);
-      setErrorMsg('Ocurrió un error guardando el movimiento');
+    } catch (e: any) {
+      console.log('Error registranto transaccion', e.response?.data || e.message);
+      const msg = e.response?.data?.detail || e.response?.data?.message || 'Ocurrió un error guardando el movimiento';
+      setErrorMsg(msg);
     } finally {
       setIsLoading(false);
     }

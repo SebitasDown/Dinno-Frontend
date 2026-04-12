@@ -135,8 +135,8 @@ export const useIAStore = create<IAState>((set, get) => ({
         }
     },
 
-    resetIAData: () => {
+    resetIAData: async () => {
         set({ dailyInsight: null, purchaseImpact: null, isLoadingDaily: false, isLoadingImpact: false, currentUserId: null, lastFetchDaily: null, lastFetchImpact: null });
-        SecureStore.deleteItemAsync(IA_CACHE_KEY);
+        await SecureStore.deleteItemAsync(IA_CACHE_KEY);
     }
 }));

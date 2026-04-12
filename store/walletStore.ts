@@ -126,8 +126,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     }
   },
 
-  clearWalletData: () => {
+  clearWalletData: async () => {
     set({ summary: null, projection: null, recentTransactions: [], categories: [] });
-    SecureStore.deleteItemAsync(WALLET_CACHE_KEY);
+    await SecureStore.deleteItemAsync(WALLET_CACHE_KEY);
   }
 }));
